@@ -20,8 +20,6 @@ class makeitsecure_ssl {
 
 	public function __construct() {
 
-		add_action( 'init',                         array( $this, 'action_init' ), 99 );
-
 		if ( !is_admin() ) {
 
 			# Front-end Filters:
