@@ -12,19 +12,16 @@
 
 class Https_All_The_Things {
 
-	# Notable SSL tickets:
-	# https://core.trac.wordpress.org/ticket/15928
-	# https://core.trac.wordpress.org/ticket/18017
-	# https://core.trac.wordpress.org/ticket/20253
-	# https://core.trac.wordpress.org/ticket/20750
-
+	// Notable SSL tickets:
+	// https://core.trac.wordpress.org/ticket/15928
+	// https://core.trac.wordpress.org/ticket/18017
+	// https://core.trac.wordpress.org/ticket/20253
+	// https://core.trac.wordpress.org/ticket/20750
 	public function __construct() {
 
-		// add_action( 'init',                         array( $this, 'action_init' ), 99 );
+		if ( ! is_admin() ) {
 
-		if ( !is_admin() ) {
-
-			# Front-end Filters:
+			// Front-end Filters:
 			add_filter( 'the_content',              array( $this, 'force_current_scheme' ), 99 );
 			add_filter( 'get_comment_author_link',  array( $this, 'force_current_scheme' ), 99 );
 			add_filter( 'the_excerpt',              array( $this, 'force_current_scheme' ), 99 );
@@ -32,7 +29,7 @@ class Https_All_The_Things {
 
 		}
 
-		# Filters:
+		// Filters:
 		add_filter( 'home_url',              array( $this, 'enforce_home_scheme' ) );
 		add_filter( 'option_home',           array( $this, 'enforce_admin_scheme' ) );
 		add_filter( 'option_siteurl',        array( $this, 'enforce_admin_scheme' ) );
@@ -52,19 +49,19 @@ class Https_All_The_Things {
 
 		// No need for action if we're either using CLI or
 		// over HTTPS already
-		if ( is_ssl() || "cli" == php_sapi_name() ) {
+		if ( is_ssl() || 'cli' === php_sapi_name() ) {
 			return;
 		}
 
 		$url = set_url_scheme( self::current_url(), 'https' );
-		wp_redirect( $url, 301 );
+		wp_safe_redirect( $url, 301 );
 		exit;
 
 	}
 
 	/**
 	 * Enforce the home URL scheme on a URL. Used for forcing public blogs to use HTTP and private blogs to use HTTPS.
-	 * 
+	 *
 	 * @param  string $url The URL.
 	 * @return string      The URL with our desired scheme.
 	 */
@@ -76,7 +73,7 @@ class Https_All_The_Things {
 
 	/**
 	 * Enforce the admin URL scheme on a URL. Used mainly for forcing URLs which use `get_option('siteurl')` to use HTTPS if FORCE_SSL_ADMIN is true.
-	 * 
+	 *
 	 * @param  string $url The URL.
 	 * @return string      The URL with our desired scheme.
 	 */
@@ -97,7 +94,7 @@ class Https_All_The_Things {
 
 		static $current_url, $incorrect_url;
 
-		if ( !isset( $current_url ) ) {
+		if ( ! isset( $current_url ) ) {
 			$current_url   = set_url_scheme( get_option( 'home' ), is_ssl() ? 'https' : 'http' );
 			$incorrect_url = set_url_scheme( get_option( 'home' ), is_ssl() ? 'http' : 'https' );
 		}
@@ -115,7 +112,7 @@ class Https_All_The_Things {
 	 * @return array       The updated post data
 	 */
 	public function wp_insert_post_data_guid( array $data ) {
-		if ( !empty( $data['guid']) ) {
+		if ( ! empty( $data['guid'] ) ) {
 			$data['guid'] = $this->enforce_home_scheme( $data['guid'] );
 		}
 		return $data;
@@ -137,14 +134,14 @@ class Https_All_The_Things {
 	 *
 	 * @return string The current URL.
 	 */
-	public static function current_url() {	
+	public static function current_url() {
 		$protocol = is_ssl() ? 'https' : 'http';
-		return $protocol . "://" . $_SERVER['HTTP_HOST'] .  $_SERVER['REQUEST_URI'];
+		return $protocol . '://' . $_SERVER['HTTP_HOST'] . $_SERVER['REQUEST_URI'];
 	}
 
 	/**
 	 * Singleton stuff.
-	 * 
+	 *
 	 * @return makeitsecure_ssl
 	 */
 	static public function init() {
@@ -157,7 +154,6 @@ class Https_All_The_Things {
 		return $instance;
 
 	}
-
 }
 
 Https_All_The_Things::init();
